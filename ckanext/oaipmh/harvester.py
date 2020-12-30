@@ -1,3 +1,5 @@
+import uuid
+
 import logging
 import json
 import urllib2
@@ -267,8 +269,7 @@ class OaipmhHarvester(HarvesterBase):
             context = {
                 'model': model,
                 'session': Session,
-                'user': self.user,
-                'ignore_auth': True,
+                'user': self._get_user_name(),
             }
 
             package_dict = {}
@@ -321,7 +322,8 @@ class OaipmhHarvester(HarvesterBase):
             log.debug('Create/update package using dict: %s' % package_dict)
             self._create_or_update_package(
                 package_dict,
-                harvest_object
+                harvest_object,
+                package_dict_form='package_show'
             )
 
             Session.commit()
