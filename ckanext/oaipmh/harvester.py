@@ -308,10 +308,10 @@ class OaipmhHarvester(HarvesterBase):
             # extract tags from 'type' and 'subject' field
             # everything else is added as extra field
             tags, extras = self._extract_tags_and_extras(content)
-            package_dict['tags'] = tags
+            package_dict['tags'] = [{"name": t} for t in tags]
             if content['set_spec']:
-                extras.append(('set_spec', ",".join(content['set_spec'])))
-            package_dict['extras'] = extras
+                extras.append(('sets', ",".join(content['set_spec'])))
+            package_dict['extras'] = [{"key": e[0], "value": e[1]} for e in extras]
 
             # allow sub-classes to add additional fields
             package_dict = self._extract_additional_fields(
