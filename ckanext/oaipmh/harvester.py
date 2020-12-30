@@ -308,27 +308,9 @@ class OaipmhHarvester(HarvesterBase):
             # everything else is added as extra field
             tags, extras = self._extract_tags_and_extras(content)
             package_dict['tags'] = tags
-            package_dict['extras'] = extras
-
-            # groups aka projects
-            groups = []
-
-            # create group based on set
             if content['set_spec']:
-                log.debug('set_spec: %s' % content['set_spec'])
-                groups.extend(
-                    self._find_or_create_groups(
-                        content['set_spec'],
-                        context.copy()
-                    )
-                )
-
-            # add groups from content
-            groups.extend(
-                self._extract_groups(content, context.copy())
-            )
-
-            package_dict['groups'] = groups
+                extras.append(('set_spec', ",".join(content['set_spec'])))
+            package_dict['extras'] = extras
 
             # allow sub-classes to add additional fields
             package_dict = self._extract_additional_fields(
@@ -430,35 +412,7 @@ class OaipmhHarvester(HarvesterBase):
             })
         return resources
 
-    def _extract_groups(self, content, context):
-        if 'series' in content and len(content['series']) > 0:
-            return self._find_or_create_groups(
-                content['series'],
-                context
-            )
-        return []
-
     def _extract_additional_fields(self, content, package_dict):
         # This method is the ideal place for sub-classes to
         # change whatever they want in the package_dict
         return package_dict
-
-    def _find_or_create_groups(self, groups, context):
-        log.debug('Group names: %s' % groups)
-        group_ids = []
-        for group_name in groups:
-            data_dict = {
-                'id': group_name,
-                'name': munge_title_to_name(group_name),
-                'title': group_name
-            }
-            try:
-                group = get_action('group_show')(context.copy(), data_dict)
-                log.info('found the group ' + group['id'])
-            except:
-                group = get_action('group_create')(context.copy(), data_dict)
-                log.info('created the group ' + group['id'])
-            group_ids.append(group['id'])
-
-        log.debug('Group ids: %s' % group_ids)
-        return group_ids
